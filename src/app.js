@@ -8,6 +8,7 @@ const CELL_PADDING = 1;
 const MODES = 3;
 const GRID_LINE = 5;
 
+var CURSOR_PAINT = 0;
 
 const COLORS = [0xFFFFFF,0x000000,0xD3D3D3];
 
@@ -81,8 +82,12 @@ class GameScene extends Phaser.Scene {
     this.grid.fill(0);
   }
 
-	clickGridAt(index) {
-		this.grid[index]++;
+	clickGridAt(index, paint=-1) {
+    if(paint < 0) {
+      this.grid[index]++;
+    } else {
+      this.grid[index] = paint;
+    }
 		this.grid[index] %= MODES;
     this.updateGridText();
 		return this.grid[index];
@@ -93,14 +98,23 @@ class GameScene extends Phaser.Scene {
 		this.grid.forEach((cell, index) => {
 			let cell_x = (index % this.GRID_WIDTH) * (CELL_SIZE + CELL_PADDING) ;
 			let cell_y = Math.floor(index / this.GRID_HEIGHT)  * (CELL_SIZE + CELL_PADDING);
-			let cell_gfx = this.add.sprite(x + cell_x, y + cell_y, `color_${cell}`);
-			cell_gfx.setInteractive();
-			cell_gfx.on('pointerdown', () => {
-				cell_gfx.setTintFill(COLORS[this.clickGridAt(index)]);
+      let cell_gfx = this.add.sprite(x + cell_x, y + cell_y, `color_${cell}`);
+      cell_gfx.game_index = index;
+      cell_gfx.setInteractive();
+      this.input.setDraggable(cell_gfx);
+      cell_gfx.on('pointerdown', () => {
+        CURSOR_PAINT = this.clickGridAt(index);
+        cell_gfx.setTintFill(COLORS[CURSOR_PAINT]);
+      });
+			cell_gfx.on('pointerover', (pointer) => {
+        if(pointer.isDown) {
+          cell_gfx.setTintFill(COLORS[this.clickGridAt(index, CURSOR_PAINT)]);
+        }
 			});
 			this.grid_group.add(cell_gfx);
     });
     this.renderGridLines();
+
 	}
 
   renderGridLines() {
