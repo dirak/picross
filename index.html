@@ -2,10 +2,20 @@
 <html>
 <head>
 	<link rel="stylesheet" href="./main.css">
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser.min.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+	<script src="//cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser.min.js"></script>
+	
 </head>
 <body style="background-color:#708090">
 	<div id="canvas">
+		<div id="toolbar">
+			<span id="refresh" class="toolbar-item">
+					<i class="fas fa-redo fa-lg"></i>
+			</span>
+			<span id="paint" class="toolbar-item">
+					<i id="marker" class="fas fa-marker fa-lg"></i>
+			</span>
+		</div>
 		<div id="menu">
 			<button id="load_string" class="flat-button"> Import String </button>
 			<button id="create_string" class="flat-button">Generate String</button> <input type="text" id="picross_string">

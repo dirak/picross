@@ -5,10 +5,10 @@ const GRID_HEIGHT = 20;
 const CELL_SIZE = 30;
 const FONT_SIZE = 18;
 const CELL_PADDING = 1;
-const MODES = 3;
 const GRID_LINE = 5;
 
-var CURSOR_PAINT = 0;
+var CURSOR_PAINT = 1;
+var CURRENT_CURSOR = 0;
 
 const COLORS = [0xFFFFFF,0x000000,0xD3D3D3];
 
@@ -34,7 +34,7 @@ class GameScene extends Phaser.Scene {
 
 	create() {
 		this.loaded = false;
-    this.loadGrid(10, 10);
+		this.loadGrid(10, 10);
 		document.getElementById('create_string').addEventListener('click', () => {
 			document.getElementById('picross_string').value = this.generateString();
 		});
@@ -50,6 +50,16 @@ class GameScene extends Phaser.Scene {
     });
     document.getElementById('20x20').addEventListener('click', () => {
 			this.loadGrid(20, 20);
+		});
+		document.getElementById('refresh').addEventListener('click', () => {
+			this.loaded = false;
+			this.loadGrid(this.GRID_WIDTH, this.GRID_HEIGHT);
+		});
+		document.getElementById('paint').addEventListener('click', () => {
+			if(CURSOR_PAINT == 1) CURSOR_PAINT = 2;
+			else CURSOR_PAINT = 1;
+			document.getElementById('marker').classList.toggle('fa-highlighter');
+			document.getElementById('marker').classList.toggle('fa-marker');
 		});
 	}
 
@@ -67,29 +77,34 @@ class GameScene extends Phaser.Scene {
     this.bg = this.add.graphics();
 		this.bg.fillStyle(0x708090, 1.0);
 		this.bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    
     this.GRID_WIDTH = parseInt(w);
     this.GRID_HEIGHT = parseInt(h);
     this.grid = [...Array(this.GRID_HEIGHT*this.GRID_WIDTH).fill(0)];
     this.X = (GAME_WIDTH / 2) - ((CELL_SIZE + CELL_PADDING) * this.GRID_WIDTH)/2;
-    this.Y = (GAME_HEIGHT / 2) - ((CELL_SIZE + CELL_PADDING) * this.GRID_HEIGHT)/2;
+		this.Y = (GAME_HEIGHT / 2) - ((CELL_SIZE + CELL_PADDING) * this.GRID_HEIGHT)/2;
+
+		document.getElementById('toolbar').style.position = 'absolute';
+		document.getElementById('toolbar').style.bottom = 0;
+		document.getElementById('toolbar').style.left = `${this.X-CELL_SIZE*2.3}px`
+		document.getElementById('toolbar').style.top = `${this.Y}px`;
+
     this.renderGrid(this.X, this.Y);
     this.renderGridText(this.X, this.Y);
     if(grid) {
-      this.grid = grid
+      this.grid = grid;
+      //this.renderGrid(this.X, this.Y);
     }
     this.updateGridText(!!grid);
     this.grid.fill(0);
-  }
-
-	clickGridAt(index, paint=-1) {
-    if(paint < 0) {
-      this.grid[index]++;
-    } else {
-      this.grid[index] = paint;
-    }
-		this.grid[index] %= MODES;
-    this.updateGridText();
+	}
+	
+	clickGridAt(index, dragging=false) {
+		if(dragging) this.grid[index] = dragging;
+		else {
+			if(this.grid[index] != CURSOR_PAINT) this.grid[index] = CURSOR_PAINT;
+			else this.grid[index] = 0;
+		}
+		this.updateGridText();
 		return this.grid[index];
 	}
 
@@ -103,12 +118,12 @@ class GameScene extends Phaser.Scene {
       cell_gfx.setInteractive();
       this.input.setDraggable(cell_gfx);
       cell_gfx.on('pointerdown', () => {
-        CURSOR_PAINT = this.clickGridAt(index);
-        cell_gfx.setTintFill(COLORS[CURSOR_PAINT]);
+				CURRENT_CURSOR = this.clickGridAt(index);
+        cell_gfx.setTintFill(COLORS[CURRENT_CURSOR]);
       });
 			cell_gfx.on('pointerover', (pointer) => {
         if(pointer.isDown) {
-          cell_gfx.setTintFill(COLORS[this.clickGridAt(index, CURSOR_PAINT)]);
+          cell_gfx.setTintFill(COLORS[this.clickGridAt(index, CURRENT_CURSOR)]);
         }
 			});
 			this.grid_group.add(cell_gfx);
